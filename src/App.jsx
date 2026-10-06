@@ -91,6 +91,12 @@ export function App() {
     setSidebarBackdrop(newState);
   }
 
+  function openSearch() {
+    setIsMobileMenuOpen(false);
+    setSidebarBackdrop(false);
+    setIsSearchOpen(true);
+  }
+
   return (
     <div className="app-root">
       {sidebarBackdrop && (
@@ -107,7 +113,7 @@ export function App() {
       <Header
         currentRoute={currentRoute}
         onNavigate={navigateTo}
-        onOpenSearch={() => setIsSearchOpen(true)}
+        onOpenSearch={openSearch}
         theme={theme}
         onToggleTheme={toggleTheme}
         isMobileMenuOpen={isMobileMenuOpen}
@@ -123,7 +129,7 @@ export function App() {
             setShareCode(code || "");
             setIsShareOpen(true);
           }}
-          onOpenSearch={() => setIsSearchOpen(true)}
+          onOpenSearch={openSearch}
           isMobileMenuOpen={isMobileMenuOpen}
           onCloseMobileMenu={() => {
             setIsMobileMenuOpen(false);

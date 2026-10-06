@@ -70,7 +70,7 @@ function highlightMatch(text, query) {
 }
 
 export function SearchModal({ isOpen, onClose, onSelectResult }) {
-  const [shouldRender, setShouldRender] = useState(false);
+  const [shouldRender, setShouldRender] = useState(isOpen);
   const [isClosing, setIsClosing] = useState(false);
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
@@ -78,7 +78,7 @@ export function SearchModal({ isOpen, onClose, onSelectResult }) {
   const inputRef = useRef(null);
   const resultsContainerRef = useRef(null);
 
-  // Handle open / close animation lifecycle
+  // Sync animation mounting and focus
   useEffect(() => {
     if (isOpen) {
       setShouldRender(true);
@@ -86,26 +86,30 @@ export function SearchModal({ isOpen, onClose, onSelectResult }) {
       setSelectedIndex(0);
       const timer = setTimeout(() => {
         if (inputRef.current) {
-          inputRef.current.focus();
+          try {
+            inputRef.current.focus({ preventScroll: true });
+          } catch {
+            inputRef.current.focus();
+          }
         }
-      }, 50);
+      }, 40);
       return () => clearTimeout(timer);
     } else if (shouldRender) {
       setIsClosing(true);
       const timer = setTimeout(() => {
         setShouldRender(false);
         setIsClosing(false);
-      }, 220); // match CSS exit animation duration
+      }, 180);
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
 
-  // Trigger graceful exit
+  // Request close with smooth exit animation
   function handleRequestClose() {
     setIsClosing(true);
     setTimeout(() => {
       onClose();
-    }, 200);
+    }, 160);
   }
 
   // Filter items
@@ -130,12 +134,12 @@ export function SearchModal({ isOpen, onClose, onSelectResult }) {
     );
   }).slice(0, 15);
 
-  // Keep selected index within bounds
+  // Reset selected index when query or category changes
   useEffect(() => {
     setSelectedIndex(0);
   }, [query, activeCategory]);
 
-  // Scroll active item into view
+  // Auto-scroll active item into view
   useEffect(() => {
     if (!resultsContainerRef.current) return;
     const activeEl = resultsContainerRef.current.querySelector(".result-item-row.active");
@@ -164,7 +168,7 @@ export function SearchModal({ isOpen, onClose, onSelectResult }) {
 
   function handleSelect(section) {
     onSelectResult(section);
-    handleRequestClose();
+    onClose();
   }
 
   if (!shouldRender && !isOpen) return null;
@@ -172,7 +176,12 @@ export function SearchModal({ isOpen, onClose, onSelectResult }) {
   return (
     <div
       className={`modal-overlay search-popup-overlay ${isClosing ? "modal-exit" : "modal-enter"}`}
-      onClick={handleRequestClose}
+      onClick={(e) => {
+        // Only close if clicking directly on backdrop
+        if (e.target === e.currentTarget) {
+          handleRequestClose();
+        }
+      }}
       role="dialog"
       aria-modal="true"
       aria-label="Search Documentation"
@@ -185,7 +194,7 @@ export function SearchModal({ isOpen, onClose, onSelectResult }) {
         {/* Animated Crimson Glow Edge Accent */}
         <div className="search-popup-top-glow" />
 
-        {/* Input Bar */}
+        {/* Search Input Bar */}
         <div className="modal-input-row search-popup-input-row">
           <div className="search-input-icon-wrap" aria-hidden="true">
             <svg
@@ -206,11 +215,14 @@ export function SearchModal({ isOpen, onClose, onSelectResult }) {
 
           <input
             ref={inputRef}
-            type="text"
+            type="search"
             className="modal-search-field search-popup-input"
-            placeholder="Search docs, syntax, standard library, CLI..."
+            placeholder="Search documentation, syntax, standard library..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck="false"
             aria-autocomplete="list"
           />
 
@@ -223,29 +235,35 @@ export function SearchModal({ isOpen, onClose, onSelectResult }) {
                 setQuery("");
                 if (inputRef.current) inputRef.current.focus();
               }}
-              aria-label="Clear search input"
+              aria-label="Clear search query"
               title="Clear input"
             >
-              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" strokeWidth="2.5" fill="none">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2.5" fill="none">
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
             </button>
           )}
 
-          {/* Esc key button */}
+          {/* Close button: Shows ESC on desktop, ✕ icon on mobile */}
           <button
             type="button"
-            className="search-esc-badge-btn"
+            className="search-close-action-btn"
             onClick={handleRequestClose}
-            aria-label="Close search"
-            title="Press Esc to close"
+            aria-label="Close search popup"
+            title="Close"
           >
-            <span>ESC</span>
+            <span className="close-badge-desktop">ESC</span>
+            <span className="close-icon-mobile">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2.5" fill="none">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </span>
           </button>
         </div>
 
-        {/* Category Filters Bar */}
+        {/* Category Filter Tabs */}
         <div className="search-category-tabs">
           {CATEGORIES.map((cat) => (
             <button
@@ -259,7 +277,7 @@ export function SearchModal({ isOpen, onClose, onSelectResult }) {
           ))}
         </div>
 
-        {/* Results List */}
+        {/* Results Scroll Area */}
         <div className="modal-results-scroll search-results-container" ref={resultsContainerRef}>
           {filtered.length === 0 ? (
             <div className="search-empty-state">
@@ -298,7 +316,10 @@ export function SearchModal({ isOpen, onClose, onSelectResult }) {
                 <div
                   key={`${item.section}-${item.title}-${idx}`}
                   className={`result-item-row search-result-item ${isSelected ? "active" : ""}`}
-                  onClick={() => handleSelect(item.section)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSelect(item.section);
+                  }}
                   onMouseEnter={() => setSelectedIndex(idx)}
                 >
                   <div className="result-item-left">
@@ -318,7 +339,7 @@ export function SearchModal({ isOpen, onClose, onSelectResult }) {
                   <div className="result-item-right">
                     <span className="result-kind-badge">{item.kind}</span>
                     {isSelected && (
-                      <span className="result-jump-badge" title="Press Enter to jump">
+                      <span className="result-jump-badge" title="Tap to select">
                         <span>↵</span> Jump
                       </span>
                     )}
@@ -329,7 +350,7 @@ export function SearchModal({ isOpen, onClose, onSelectResult }) {
           )}
         </div>
 
-        {/* Footer with keyboard navigation guidance */}
+        {/* Footer with keyboard guidance & results counter */}
         <div className="search-popup-footer">
           <div className="search-keys-hint">
             <span className="search-hint-item">

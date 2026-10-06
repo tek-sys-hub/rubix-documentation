@@ -159,8 +159,8 @@ export function Header({
               <svg
                 className="search-icon"
                 viewBox="0 0 24 24"
-                width="15"
-                height="15"
+                width="16"
+                height="16"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
@@ -171,6 +171,7 @@ export function Header({
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
               <span className="search-placeholder">Search documentation...</span>
+              <span className="search-placeholder-mobile">Search</span>
             </div>
             <div className="search-keys">
               <kbd className="key-badge">Ctrl K</kbd>
