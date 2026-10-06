@@ -27,6 +27,7 @@ export function DocsLayout({
   const [playgroundOutput, setPlaygroundOutput] = useState(null);
   const [osTab, setOsTab] = useState("unix");
   const [activeToc, setActiveToc] = useState("overview");
+  const [mobileTocOpen, setMobileTocOpen] = useState(false);
 
   // Track scroll position for TOC
   useEffect(() => {
@@ -129,22 +130,94 @@ export function DocsLayout({
       <div className="docs-layout-grid">
         {/* ================= LEFT SIDEBAR ================= */}
         <aside className={`docs-sidebar ${isMobileMenuOpen ? "mobile-visible" : ""}`}>
-          {/* Top Brand Block in Sidebar matching rubixui2.png */}
-          <div className="sidebar-brand-block" onClick={() => onSelectSection("introduction")}>
-            <div className="sidebar-brand-icon">
-              <svg viewBox="0 0 32 32" width="28" height="28" fill="none">
-                <path d="M16 2L29 9.5V22.5L16 30L3 22.5V9.5L16 2Z" fill="#DC2626" />
-                <path d="M16 2L29 9.5L16 16.5L3 9.5L16 2Z" fill="#EF4444" />
-                <path d="M16 16.5L29 9.5V22.5L16 30V16.5Z" fill="#B91C1C" />
-                <path d="M16 16.5V30L3 22.5V9.5L16 16.5Z" fill="#DC2626" />
-                <path d="M16 2V16.5M16 16.5L29 9.5M16 16.5L3 9.5M16 16.5V30" stroke="#FFFFFF" strokeWidth="1.2" />
-                <path d="M16 12L20.5 14.5V19.5L16 22L11.5 19.5V14.5L16 12Z" fill="#FFFFFF" fillOpacity="0.3" stroke="#FFFFFF" strokeWidth="1" />
+          <div className="sidebar-mobile-top">
+            {/* Top Brand Block in Sidebar matching rubixui2.png */}
+            <div className="sidebar-brand-block" onClick={() => {
+              onSelectSection("introduction");
+              if (onCloseMobileMenu) onCloseMobileMenu();
+            }}>
+              <div className="sidebar-brand-icon">
+                <svg viewBox="0 0 32 32" width="28" height="28" fill="none">
+                  <path d="M16 2L29 9.5V22.5L16 30L3 22.5V9.5L16 2Z" fill="#DC2626" />
+                  <path d="M16 2L29 9.5L16 16.5L3 9.5L16 2Z" fill="#EF4444" />
+                  <path d="M16 16.5L29 9.5V22.5L16 30V16.5Z" fill="#B91C1C" />
+                  <path d="M16 16.5V30L3 22.5V9.5L16 16.5Z" fill="#DC2626" />
+                  <path d="M16 2V16.5M16 16.5L29 9.5M16 16.5L3 9.5M16 16.5V30" stroke="#FFFFFF" strokeWidth="1.2" />
+                  <path d="M16 12L20.5 14.5V19.5L16 22L11.5 19.5V14.5L16 12Z" fill="#FFFFFF" fillOpacity="0.3" stroke="#FFFFFF" strokeWidth="1" />
+                </svg>
+              </div>
+              <div className="sidebar-brand-text">
+                <span className="sidebar-brand-name">RUBIX</span>
+                <span className="sidebar-brand-ver">v{VERSION}</span>
+              </div>
+            </div>
+
+            {/* Mobile Close Button */}
+            <button
+              type="button"
+              className="sidebar-close-btn"
+              onClick={onCloseMobileMenu}
+              aria-label="Close menu"
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2.2" fill="none">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
-            </div>
-            <div className="sidebar-brand-text">
-              <span className="sidebar-brand-name">RUBIX</span>
-              <span className="sidebar-brand-ver">v{VERSION}</span>
-            </div>
+            </button>
+          </div>
+
+          {/* Quick Tab Links on Mobile */}
+          <div className="sidebar-mobile-tabs">
+            <button
+              type="button"
+              className={`mobile-tab-pill ${["introduction", "getting-started", "installation", "first-program", "project-structure", "hello-world", "variables", "data-types", "operators", "control-flow", "functions", "arrays", "strings", "error-handling", "structs", "traits", "generics", "concurrency", "memory", "modules", "collections", "filesystem", "networking", "system", "time", "json"].includes(currentSection) ? "active" : ""}`}
+              onClick={() => {
+                onSelectSection("introduction");
+                if (onCloseMobileMenu) onCloseMobileMenu();
+              }}
+            >
+              Docs
+            </button>
+            <button
+              type="button"
+              className={`mobile-tab-pill ${currentSection === "learn" ? "active" : ""}`}
+              onClick={() => {
+                onSelectSection("learn");
+                if (onCloseMobileMenu) onCloseMobileMenu();
+              }}
+            >
+              Learn
+            </button>
+            <button
+              type="button"
+              className={`mobile-tab-pill ${currentSection === "playground" ? "active" : ""}`}
+              onClick={() => {
+                onSelectSection("playground");
+                if (onCloseMobileMenu) onCloseMobileMenu();
+              }}
+            >
+              Playground
+            </button>
+            <button
+              type="button"
+              className={`mobile-tab-pill ${currentSection === "packages" ? "active" : ""}`}
+              onClick={() => {
+                onSelectSection("packages");
+                if (onCloseMobileMenu) onCloseMobileMenu();
+              }}
+            >
+              Packages
+            </button>
+            <button
+              type="button"
+              className={`mobile-tab-pill ${currentSection === "compiler" ? "active" : ""}`}
+              onClick={() => {
+                onSelectSection("compiler");
+                if (onCloseMobileMenu) onCloseMobileMenu();
+              }}
+            >
+              Compiler
+            </button>
           </div>
 
           {/* Categorized Navigation matching rubixui2.png */}
@@ -225,6 +298,132 @@ export function DocsLayout({
             </span>
             <span className="breadcrumb-sep">/</span>
             <span className="breadcrumb-current">{currentTitle}</span>
+          </div>
+
+          {/* Mobile Table of Contents Accordion Bar */}
+          <div className="mobile-toc-bar">
+            <button
+              type="button"
+              className="mobile-toc-trigger"
+              onClick={() => setMobileTocOpen(!mobileTocOpen)}
+              aria-expanded={mobileTocOpen}
+            >
+              <div className="mobile-toc-label-wrap">
+                <span className="mobile-toc-tag">On this page</span>
+                <span className="mobile-toc-title">
+                  {activeToc === "overview"
+                    ? "Overview"
+                    : activeToc === "what-you-learn"
+                    ? "What You'll Learn"
+                    : activeToc === "key-features"
+                    ? "Key Features"
+                    : activeToc === "quick-example"
+                    ? "Quick Example"
+                    : activeToc === "next-steps"
+                    ? "Next Steps"
+                    : "Overview"}
+                </span>
+              </div>
+              <svg
+                className={`mobile-toc-chevron ${mobileTocOpen ? "open" : ""}`}
+                viewBox="0 0 24 24"
+                width="16"
+                height="16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+
+            {mobileTocOpen && (
+              <div className="mobile-toc-dropdown">
+                <div className="mobile-toc-subheading">SECTIONS</div>
+                <ul className="mobile-toc-list">
+                  <li>
+                    <button
+                      type="button"
+                      className={`mobile-toc-link ${activeToc === "overview" ? "active" : ""}`}
+                      onClick={() => {
+                        scrollToAnchor("overview");
+                        setMobileTocOpen(false);
+                      }}
+                    >
+                      Overview
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      className={`mobile-toc-link ${activeToc === "what-you-learn" ? "active" : ""}`}
+                      onClick={() => {
+                        scrollToAnchor("what-you-learn");
+                        setMobileTocOpen(false);
+                      }}
+                    >
+                      What You'll Learn
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      className={`mobile-toc-link ${activeToc === "key-features" ? "active" : ""}`}
+                      onClick={() => {
+                        scrollToAnchor("key-features");
+                        setMobileTocOpen(false);
+                      }}
+                    >
+                      Key Features
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      className={`mobile-toc-link ${activeToc === "quick-example" ? "active" : ""}`}
+                      onClick={() => {
+                        scrollToAnchor("quick-example");
+                        setMobileTocOpen(false);
+                      }}
+                    >
+                      Quick Example
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      className={`mobile-toc-link ${activeToc === "next-steps" ? "active" : ""}`}
+                      onClick={() => {
+                        scrollToAnchor("next-steps");
+                        setMobileTocOpen(false);
+                      }}
+                    >
+                      Next Steps
+                    </button>
+                  </li>
+                </ul>
+
+                <div className="mobile-toc-divider" />
+                <div className="mobile-toc-subheading">RELATED</div>
+                <ul className="mobile-toc-list">
+                  {relatedLinks.map((rel) => (
+                    <li key={rel.id}>
+                      <button
+                        type="button"
+                        className="mobile-toc-related-link"
+                        onClick={() => {
+                          onSelectSection(rel.id);
+                          setMobileTocOpen(false);
+                        }}
+                      >
+                        <span>{rel.title}</span>
+                        <span>↗</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           {/* Section Category Eyebrow matching rubixui2.png */}
