@@ -12,6 +12,7 @@ import {
   CHANGELOG,
 } from "../data/docsData";
 import { CodeBlock } from "../components/CodeBlock";
+import { DocsSkeleton } from "../components/DocsSkeleton";
 import { runPreview, formatCode } from "../lib/preview";
 
 export function DocsLayout({
@@ -29,6 +30,16 @@ export function DocsLayout({
   const [osTab, setOsTab] = useState("unix");
   const [activeToc, setActiveToc] = useState("overview");
   const [mobileTocOpen, setMobileTocOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Trigger smooth skeleton transition on initial mount and section changes
+  useEffect(() => {
+    setIsLoading(true);
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 280);
+    return () => clearTimeout(timer);
+  }, [currentSection]);
 
   // Track scroll position for TOC
   useEffect(() => {
@@ -319,7 +330,11 @@ export function DocsLayout({
 
         {/* ================= CENTER MAIN ARTICLE ================= */}
         <main className="docs-main-article">
-          {/* Breadcrumbs matching rubixui2.png */}
+          {isLoading ? (
+            <DocsSkeleton />
+          ) : (
+            <div className="docs-content-fade-in">
+              {/* Breadcrumbs matching rubixui2.png */}
           <div className="docs-breadcrumbs">
             <span
               className="breadcrumb-link"
@@ -1384,6 +1399,8 @@ fn main() {
                   <p className="next-desc">Experiment with Rubix code directly in the browser.</p>
                 </div>
               </div>
+            </div>
+          )}
             </div>
           )}
         </main>

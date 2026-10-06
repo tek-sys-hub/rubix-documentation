@@ -51,6 +51,10 @@
   --sidebar-width: 250px;
   --toc-width: 220px;
   --max-content-width: 860px;
+
+  /* Skeleton Loading Shimmer */
+  --skeleton-base: #e2e8f0;
+  --skeleton-highlight: #f8fafc;
 }
 
 /* Dark Mode Theme (Smooth toggle) */
@@ -87,6 +91,10 @@
   --code-func: #38bdf8;
   --code-string: #4ade80;
   --code-text: #f1f5f9;
+
+  /* Skeleton Loading Shimmer */
+  --skeleton-base: #171d2d;
+  --skeleton-highlight: #232c42;
 }
 
 /* Base resets */
@@ -2379,5 +2387,196 @@ code, pre, kbd {
 
   .search-keys-hint {
     display: none;
+  }
+}
+
+/* ==========================================================================
+   Skeleton Loading Animation & Layout
+   ========================================================================== */
+
+@keyframes skeletonShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes contentFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.docs-content-fade-in {
+  animation: contentFadeIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.docs-skeleton-container {
+  width: 100%;
+  max-width: var(--max-content-width);
+  display: flex;
+  flex-direction: column;
+  animation: contentFadeIn 0.2s ease-out;
+}
+
+.skeleton-bar {
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 0%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.6s infinite linear;
+  border-radius: 4px;
+}
+
+.skeleton-pill {
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 0%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.6s infinite linear;
+  border-radius: 20px;
+}
+
+.skeleton-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.skeleton-sep {
+  color: var(--text-faint);
+  font-size: 0.8rem;
+  opacity: 0.5;
+}
+
+.skeleton-eyebrow {
+  margin-bottom: 0.75rem;
+}
+
+.skeleton-title {
+  margin-bottom: 1.75rem;
+}
+
+.skeleton-title-bar {
+  width: 280px;
+  height: 38px;
+  border-radius: 6px;
+}
+
+.skeleton-hero-headline {
+  margin-bottom: 1.25rem;
+}
+
+.skeleton-lead-text {
+  margin-bottom: 1.75rem;
+}
+
+.skeleton-actions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 3rem;
+}
+
+.skeleton-features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border-light);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 3rem;
+}
+
+.skeleton-feature-card {
+  background: var(--bg-canvas);
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.skeleton-icon-box {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 0%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.6s infinite linear;
+}
+
+.skeleton-code-block {
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--code-bg);
+  margin-bottom: 2.5rem;
+}
+
+.skeleton-code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 1rem;
+  background: var(--code-header-bg);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.skeleton-code-lines {
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.skeleton-code-line-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.skeleton-line-num {
+  width: 18px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--border-light);
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+@media (max-width: 860px) {
+  .skeleton-features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 580px) {
+  .skeleton-features-grid {
+    grid-template-columns: 1fr;
+  }
+  .skeleton-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .skeleton-actions .skeleton-pill {
+    width: 100% !important;
   }
 }
