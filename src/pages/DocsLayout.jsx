@@ -37,7 +37,7 @@ export function DocsLayout({
     setIsLoading(true);
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 280);
+    }, 650);
     return () => clearTimeout(timer);
   }, [currentSection]);
 

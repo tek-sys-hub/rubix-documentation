@@ -54,7 +54,7 @@
 
   /* Skeleton Loading Shimmer */
   --skeleton-base: #e2e8f0;
-  --skeleton-highlight: #f8fafc;
+  --skeleton-highlight: #ffffff;
 }
 
 /* Dark Mode Theme (Smooth toggle) */
@@ -93,8 +93,8 @@
   --code-text: #f1f5f9;
 
   /* Skeleton Loading Shimmer */
-  --skeleton-base: #171d2d;
-  --skeleton-highlight: #232c42;
+  --skeleton-base: #141926;
+  --skeleton-highlight: #28334d;
 }
 
 /* Base resets */
@@ -2434,7 +2434,7 @@ code, pre, kbd {
     var(--skeleton-base) 100%
   );
   background-size: 200% 100%;
-  animation: skeletonShimmer 1.6s infinite linear;
+  animation: skeletonShimmer 1.35s infinite linear;
   border-radius: 4px;
 }
 
