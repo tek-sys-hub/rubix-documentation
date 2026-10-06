@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   NAV,
   VERSION,
@@ -32,18 +32,38 @@ export function DocsLayout({
   const [mobileTocOpen, setMobileTocOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Linear sequence of all documentation sections for reader traversal
+  const ALL_SECTIONS = NAV.flatMap((group) =>
+    group.items.map((item) => ({ ...item, groupLabel: group.label }))
+  );
+  const currentSectionIdx = ALL_SECTIONS.findIndex((s) => s.id === currentSection);
+  const prevSection = currentSectionIdx > 0 ? ALL_SECTIONS[currentSectionIdx - 1] : null;
+  const nextSection =
+    currentSectionIdx >= 0 && currentSectionIdx < ALL_SECTIONS.length - 1
+      ? ALL_SECTIONS[currentSectionIdx + 1]
+      : null;
+
+  // Scroll completion & auto-load state
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [isAutoLoadingNext, setIsAutoLoadingNext] = useState(false);
+  const autoLoadTimerRef = useRef(null);
+
   // Trigger smooth skeleton transition on initial mount and section changes
   useEffect(() => {
     setIsLoading(true);
+    setIsAutoLoadingNext(false);
+    setScrollProgress(0);
+    if (autoLoadTimerRef.current) clearTimeout(autoLoadTimerRef.current);
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 650);
     return () => clearTimeout(timer);
   }, [currentSection]);
 
-  // Track scroll position for TOC
+  // Track scroll position for TOC & scroll-to-load next page
   useEffect(() => {
     const handleScroll = () => {
+      // TOC active heading calculation
       const headings = [
         { id: "overview", el: document.getElementById("overview") },
         { id: "what-you-learn", el: document.getElementById("what-you-learn") },
@@ -59,10 +79,35 @@ export function DocsLayout({
           break;
         }
       }
+
+      // Calculate overall page scroll progress %
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const progress = scrollHeight > 40 ? Math.min(100, Math.max(0, (scrollTop / scrollHeight) * 100)) : 0;
+      setScrollProgress(progress);
+
+      // Trigger next page auto-load when scroll is finished (>= 96%)
+      if (progress >= 96 && nextSection && !isLoading && !isAutoLoadingNext) {
+        setIsAutoLoadingNext(true);
+        if (autoLoadTimerRef.current) clearTimeout(autoLoadTimerRef.current);
+        autoLoadTimerRef.current = setTimeout(() => {
+          onSelectSection(nextSection.id);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          setIsAutoLoadingNext(false);
+        }, 1100);
+      } else if (progress < 85 && isAutoLoadingNext) {
+        // Cancel countdown if user scrolls back up
+        if (autoLoadTimerRef.current) clearTimeout(autoLoadTimerRef.current);
+        setIsAutoLoadingNext(false);
+      }
     };
+
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [currentSection]);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (autoLoadTimerRef.current) clearTimeout(autoLoadTimerRef.current);
+    };
+  }, [currentSection, nextSection, isLoading, isAutoLoadingNext]);
 
   function scrollToAnchor(id) {
     setActiveToc(id);
@@ -139,6 +184,10 @@ export function DocsLayout({
 
   return (
     <div className="docs-page-container">
+      {/* Top Reading Progress Bar */}
+      <div className="reading-progress-track" aria-hidden="true">
+        <div className="reading-progress-fill" style={{ width: `${scrollProgress}%` }} />
+      </div>
       <div className="docs-layout-grid">
         {/* ================= LEFT SIDEBAR ================= */}
         <aside className={`docs-sidebar ${isMobileMenuOpen ? "mobile-visible" : ""}`}>
@@ -334,6 +383,37 @@ export function DocsLayout({
             <DocsSkeleton />
           ) : (
             <div className="docs-content-fade-in">
+              {/* Mobile Screen Quick Search Bar (visible on mobile screen <= 860px) */}
+              {onOpenSearch && (
+                <div className="mobile-screen-search-bar">
+                  <button
+                    type="button"
+                    className="mobile-screen-search-btn"
+                    onClick={onOpenSearch}
+                    aria-label="Search documentation"
+                  >
+                    <div className="search-pill-inner">
+                      <svg
+                        className="search-icon"
+                        viewBox="0 0 24 24"
+                        width="16"
+                        height="16"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                      </svg>
+                      <span>Search documentation...</span>
+                    </div>
+                    <kbd className="sidebar-search-kbd">⌘K</kbd>
+                  </button>
+                </div>
+              )}
+
               {/* Breadcrumbs matching rubixui2.png */}
           <div className="docs-breadcrumbs">
             <span
@@ -1401,6 +1481,97 @@ fn main() {
               </div>
             </div>
           )}
+
+              {/* Pagination Navigation: Previous & Next Section */}
+              <div className="doc-pagination-nav">
+                {prevSection ? (
+                  <button
+                    type="button"
+                    className="pagination-btn pagination-prev"
+                    onClick={() => {
+                      onSelectSection(prevSection.id);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                  >
+                    <span className="pagination-sub">← Previous</span>
+                    <span className="pagination-title">{prevSection.title}</span>
+                  </button>
+                ) : <div />}
+
+                {nextSection && (
+                  <button
+                    type="button"
+                    className="pagination-btn pagination-next"
+                    onClick={() => {
+                      onSelectSection(nextSection.id);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                  >
+                    <span className="pagination-sub">Next →</span>
+                    <span className="pagination-title">{nextSection.title}</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Bottom Scroll Completion & Next Page Loader Card */}
+              {nextSection && (
+                <div className={`scroll-end-loader-card ${scrollProgress >= 95 ? "triggered" : ""}`}>
+                  <div className="scroll-loader-inner">
+                    <div className="scroll-loader-ring-wrap">
+                      <svg className="scroll-ring-svg" viewBox="0 0 36 36">
+                        <path
+                          className="scroll-ring-bg"
+                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        />
+                        <path
+                          className="scroll-ring-val"
+                          strokeDasharray={`${scrollProgress}, 100`}
+                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        />
+                      </svg>
+                      <span className="scroll-ring-label">{Math.round(scrollProgress)}%</span>
+                    </div>
+
+                    <div className="scroll-loader-text-block">
+                      <div className="scroll-loader-status-pill">
+                        {scrollProgress >= 95 ? (
+                          <span className="pulse-text-active">
+                            <span className="live-status-dot" /> Scroll complete • Loading next page...
+                          </span>
+                        ) : (
+                          <span>Scroll to bottom to auto-load next page</span>
+                        )}
+                      </div>
+                      <div className="scroll-loader-next-headline">
+                        Up Next: <strong>{nextSection.title}</strong>
+                        <span className="scroll-loader-tag">({nextSection.groupLabel})</span>
+                      </div>
+                      <p className="scroll-loader-synopsis">{nextSection.summary}</p>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="scroll-load-now-btn"
+                      onClick={() => {
+                        onSelectSection(nextSection.id);
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                    >
+                      <span>Load Now</span>
+                      <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2.2" fill="none">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* Animated countdown bar that fills across when scroll finishes */}
+                  {scrollProgress >= 95 && (
+                    <div className="scroll-load-countdown-track">
+                      <div className="scroll-load-countdown-fill" />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </main>
