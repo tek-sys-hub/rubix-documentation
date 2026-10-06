@@ -177,6 +177,7 @@ export function DocsLayout({
                   if (onCloseMobileMenu) onCloseMobileMenu();
                   onOpenSearch();
                 }}
+                aria-label="Search documentation"
               >
                 <div className="search-pill-inner">
                   <svg
@@ -193,9 +194,9 @@ export function DocsLayout({
                     <circle cx="11" cy="11" r="8" />
                     <line x1="21" y1="21" x2="16.65" y2="16.65" />
                   </svg>
-                  <span>Search documentation...</span>
+                  <span>Search docs...</span>
                 </div>
-                <span className="mobile-search-pill-badge">Search</span>
+                <kbd className="sidebar-search-kbd">⌘K</kbd>
               </button>
             </div>
           )}

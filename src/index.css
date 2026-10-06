@@ -2166,7 +2166,7 @@ code, pre, kbd {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.6rem 0.85rem;
+    padding: 0.55rem 0.85rem;
     background: var(--bg-subtle);
     border: 1px solid var(--border-input);
     border-radius: 8px;
@@ -2179,20 +2179,33 @@ code, pre, kbd {
 
   .sidebar-mobile-search-btn:hover,
   .sidebar-mobile-search-btn:active {
-    border-color: var(--brand-primary);
+    border-color: rgba(220, 38, 38, 0.45);
     color: var(--text-heading);
     background: var(--bg-canvas);
   }
 
-  .mobile-search-pill-badge {
+  .sidebar-mobile-search-btn .search-pill-inner {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    white-space: nowrap;
+  }
+
+  .sidebar-mobile-search-btn .search-pill-inner span {
+    white-space: nowrap;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+  }
+
+  .sidebar-search-kbd {
     font-size: 0.72rem;
     font-family: var(--font-mono);
     background: var(--bg-canvas);
     border: 1px solid var(--border-input);
     padding: 2px 6px;
     border-radius: 4px;
-    color: var(--brand-primary);
-    font-weight: 600;
+    color: var(--text-muted);
+    flex-shrink: 0;
   }
 }
 
